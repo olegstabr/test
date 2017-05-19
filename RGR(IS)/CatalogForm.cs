@@ -419,7 +419,7 @@ namespace RGR_IS_
             int y = MARGIN;
 
             readersLabel.Text = "Данные о читателях:";
-            readersLabel.Font = font;
+            readersLabel.Font = font;//todo
             readersLabel.AutoSize = true;
             readersLabel.Location = new Point(x, y);
 
