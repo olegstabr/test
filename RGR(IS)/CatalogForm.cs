@@ -84,6 +84,7 @@ namespace RGR_IS_
         Button cancelExtraditionButton = new Button();
         Button addExtraditionButton = new Button();
         Button deleteExtraditionButton = new Button();
+        Button extendExtraditionButton = new Button();
 
         Label booksLabel = new Label();
         Label bookInfoLabel = new Label();
@@ -164,7 +165,7 @@ namespace RGR_IS_
             connectionString = ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString;
 
             LoadTables();
-          
+
             Closing += OnClosing;
         }
 
@@ -519,6 +520,7 @@ namespace RGR_IS_
             extraditionDataGridView.BackgroundColor = Color.WhiteSmoke;
             extraditionDataGridView.AllowUserToAddRows = false;
             extraditionDataGridView.CellClick += OnExtraditionDataGridViewCellClick;
+            extraditionDataGridView.DataBindingComplete += OnExtraditionDataGridViewDataBindingComplete;
 
             extraditionInfoLabel.Text = "Информация о выдаче:";
             extraditionInfoLabel.Font = font;
@@ -575,13 +577,19 @@ namespace RGR_IS_
             cancelExtraditionButton.Visible = false;
             cancelExtraditionButton.Click += OnCancelExtraditionButtonClick;
 
-            addExtraditionButton.Size = new Size(ClientSize.Width / 6, BUTTON_HEIGHT);
+            addExtraditionButton.Size = new Size((extraditionDataGridView.Width - 2 * MARGIN) / 3, BUTTON_HEIGHT);
             addExtraditionButton.Location = new Point(x = MARGIN, y);
             addExtraditionButton.Text = "Добавить выдачу";
             addExtraditionButton.Click += OnAddExtraditionButtonClick;
 
-            deleteExtraditionButton.Size = new Size(ClientSize.Width / 6, BUTTON_HEIGHT);
-            deleteExtraditionButton.Location = new Point(x += addExtraditionButton.Width + MARGIN, y);
+            extendExtraditionButton.Size = new Size((extraditionDataGridView.Width - 2 * MARGIN) / 3, BUTTON_HEIGHT);
+            extendExtraditionButton.Location = new Point(x += addExtraditionButton.Width + MARGIN, y);
+            extendExtraditionButton.Visible = false;
+            extendExtraditionButton.Text = "Продлить выдачу";
+            extendExtraditionButton.Click += OnExtendExtraditionButtonClick;
+
+            deleteExtraditionButton.Size = new Size((extraditionDataGridView.Width - 2 * MARGIN) / 3, BUTTON_HEIGHT);
+            deleteExtraditionButton.Location = new Point(x += extendExtraditionButton.Width + MARGIN, y);
             deleteExtraditionButton.Text = "Удалить выдачу";
             deleteExtraditionButton.Visible = false;
             deleteExtraditionButton.Click += OnDeleteExtraditionButtonClick;
@@ -601,6 +609,7 @@ namespace RGR_IS_
             extraditionTabPage.Controls.Add(extraditionDataGridView);
             extraditionTabPage.Controls.Add(extraditionGroupBox);
             extraditionTabPage.Controls.Add(addExtraditionButton);
+            extraditionTabPage.Controls.Add(extendExtraditionButton);
             extraditionTabPage.Controls.Add(deleteExtraditionButton);
             extraditionTabPage.Controls.Add(editExtraditionButton);
         }
@@ -657,8 +666,26 @@ namespace RGR_IS_
             extraditionDataGridView.Columns[0].HeaderText = "ID";
             extraditionDataGridView.Columns[1].HeaderText = "Номер карты";
             extraditionDataGridView.Columns[2].HeaderText = "Библ-ый номер";
-            extraditionDataGridView.Columns[3].HeaderText = "Дата";
-            extraditionDataGridView.Columns[3].Width = ClientSize.Width / 5;
+            extraditionDataGridView.Columns[3].HeaderText = "Дата выдачи";
+            extraditionDataGridView.Columns[3].Width = ClientSize.Width / 10;
+            extraditionDataGridView.Columns[4].HeaderText = "Дата возврата";
+            extraditionDataGridView.Columns[4].Width = ClientSize.Width / 10;
+
+            ExtraditionColor();
+        }
+
+        void ExtraditionColor()
+        {
+            int rowCount = extraditionDataGridView.RowCount;
+            for (int i = 0; i < rowCount; i++)
+            {
+                DateTime date = DateTime.Parse(extraditionDataGridView.Rows[i].Cells[4].Value.ToString());
+                if (date > DateTime.Now)
+                {
+                    extraditionDataGridView.Rows[i].Cells[4].Style.BackColor = Color.Green;
+                }
+                else { extraditionDataGridView.Rows[i].Cells[4].Style.BackColor = Color.IndianRed; }
+            }
         }
         
         void SetBookInformation()
@@ -687,7 +714,6 @@ namespace RGR_IS_
             cardExtraComboBox.Text = row.Cells[1].Value.ToString();
             libNumberExtraComboBox.Text = row.Cells[2].Value.ToString();
             dateTimePicker.Text = row.Cells[3].Value.ToString();
-
         }
 
         void SetReadersInformation()
@@ -1061,6 +1087,7 @@ namespace RGR_IS_
         {
             SetExtraditionInformation();
             editExtraditionButton.Visible = true;
+            extendExtraditionButton.Visible = true;
             deleteExtraditionButton.Visible = true;
         }
         void OnEditExtraditionButtonClick(object sender, EventArgs e)
@@ -1357,14 +1384,14 @@ namespace RGR_IS_
 
         void OnInsertExtraditionButtonClick(object sender, EventArgs eventArgs)
         {
-            if (cardExtraComboBox.SelectedIndex == -1 || libNumberExtraComboBox.SelectedIndex == -1 || dateTimePicker.Text == "")
+            if (cardExtraComboBox.SelectedIndex == -1 || libNumberExtraComboBox.SelectedIndex == -1)
             {
                 MessageBox.Show("Заполнены не все поля", "Предупреждение", MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
                 return;
             }
 
-            if (dateTimePicker.Value > DateTime.Today)
+            if (dateTimePicker.Value > DateTime.Now)
             {
                 MessageBox.Show("Выбрана некорректная дата", "Предупреждение", MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
@@ -1372,8 +1399,9 @@ namespace RGR_IS_
             }
 
             StringBuilder builder = new StringBuilder();
-            builder.Append("INSERT INTO EXTRADITION (CARD_NUMBER, LIBRARY_NUMBER, DATE) ");
-            builder.Append($"VALUES ({cardExtraComboBox.SelectedItem}, {libNumberExtraComboBox.SelectedItem}, '{dateTimePicker.Value.ToShortDateString()}')");
+            builder.Append("INSERT INTO EXTRADITION (CARD_NUMBER, LIBRARY_NUMBER, DATE, DELIVERY_DATE) ");
+            builder.Append($"VALUES ({cardExtraComboBox.SelectedItem}, {libNumberExtraComboBox.SelectedItem}, '{dateTimePicker.Value.ToShortDateString()}', ");
+            builder.Append($"'{dateTimePicker.Value.AddDays(14).ToShortDateString()}')");
             string query = builder.ToString();
             ExecuteNonQuery(query);
 
@@ -1470,24 +1498,46 @@ namespace RGR_IS_
             extraditionDataGridView.CellClick -= OnExtraditionDataGridViewCellClick;
         }
 
+        void OnExtendExtraditionButtonClick(object sender, EventArgs eventArgs)
+        {
+            DataGridViewRow row = extraditionDataGridView.CurrentRow;
+            int id = Convert.ToInt32(row.Cells[0].Value);
+
+            if (MessageBox.Show($"Вы действительно хотите продлить выдачу с ID \"{id}\"?", "Предупреждение",
+                    MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                string query = $"UPDATE EXTRADITION SET DELIVERY_DATE = '{DateTime.Now.AddDays(14)}' WHERE ID = {id}";
+                ExecuteNonQuery(query);
+                LoadTables();
+
+                extendExtraditionButton.Visible = false;
+                deleteExtraditionButton.Visible = false;
+            }
+        }
+
         void OnDeleteExtraditionButtonClick(object sender, EventArgs eventArgs)
         {
             DataGridViewRow row = extraditionDataGridView.CurrentRow;
             string cardNumber = row.Cells[1].Value.ToString();
+            int id = Convert.ToInt32(row.Cells[0].Value);
 
-            if (MessageBox.Show($"Вы действительно хотите удалить выдачу с номером карты \"{cardNumber.Trim()}\" из каталога", "Предупреждение",
+            if (MessageBox.Show($"Вы действительно хотите удалить выдачу с ID \"{id}\"?", "Предупреждение",
                     MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                int id = Convert.ToInt32(row.Cells[0].Value);
-
                 string query = $"DELETE FROM EXTRADITION WHERE ID = {id}";
                 ExecuteNonQuery(query);
                 LoadTables();
 
                 ClearExtraditionGroupBox();
 
+                extendExtraditionButton.Visible = false;
                 deleteExtraditionButton.Visible = false;
             }
+        }
+
+        void OnExtraditionDataGridViewDataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs dataGridViewBindingCompleteEventArgs)
+        {
+            ExtraditionColor();
         }
 
         void OnTextBoxDigitKeyPress(object sender, KeyPressEventArgs e)

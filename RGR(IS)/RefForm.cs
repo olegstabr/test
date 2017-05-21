@@ -86,7 +86,7 @@ namespace RGR_IS_
             showPublishersButton.Location = new Point(x += publishersComboBox.Width + MARGIN, y);
             showPublishersButton.Click += OnShowPublishersButtonClick;
 
-            penaltyReadersLabel = GetLabel("2. Справки по читателям, просрочившим заданный срок от заданной даты",
+            penaltyReadersLabel = GetLabel("2. Справки по читателям, просрочившим сдачу книги от заданной даты",
                     new Size((ClientSize.Width - 6 * MARGIN) / 2, ClientSize.Height / 10),
                     new Point(x = MARGIN, y += publishersComboBox.Height + MARGIN), font);
 
@@ -205,22 +205,25 @@ namespace RGR_IS_
         void OnShowPenaltyReadersButtonClick(object sender, EventArgs eventArgs)
         {
             secondDataSet.Clear();
-            secondDataSet = SelectRows(secondDataSet, $"SELECT * FROM BOOKS WHERE PUBLISH_HOUSE = '{publishersComboBox.SelectedItem}'");
+
+            StringBuilder builder = new StringBuilder();
+            builder.Append("SELECT DISTINCT r.CARD_NUMBER, r.SURNAME, e.DATE, e.DELIVERY_DATE FROM EXTRADITION e, READERS r ");
+            builder.Append($"WHERE e.DELIVERY_DATE < '{dateTimePicker.Value}' AND e.CARD_NUMBER = r.CARD_NUMBER");
+            string query = builder.ToString();
+
+            secondDataSet = SelectRows(secondDataSet, query);
             dataGridView.AutoGenerateColumns = true;
             dataGridView.DataSource = secondDataSet;
             dataGridView.DataMember = secondDataSet.Tables[0].TableName;
             dataGridView.ReadOnly = true;
-            dataGridView.Columns[0].HeaderText = "ID";
-            dataGridView.Columns[1].HeaderText = "Название";
-            dataGridView.Columns[1].Width = ClientSize.Width / 8;
-            dataGridView.Columns[2].HeaderText = "Автор";
-            dataGridView.Columns[2].Width = ClientSize.Width / 8;
-            dataGridView.Columns[3].HeaderText = "Изд-во";
-            dataGridView.Columns[4].HeaderText = "Год";
-            dataGridView.Columns[5].HeaderText = "Библ-ый номер";
-            dataGridView.Columns[6].HeaderText = "Шифр тематики";
-            dataGridView.Columns[7].HeaderText = "Кол-во";
-            dataGridView.Columns[8].HeaderText = "Чит-ый зал";
+            dataGridView.Columns[0].HeaderText = "Номер карты";
+            dataGridView.Columns[0].Width = dataGridView.Width / 5;
+            dataGridView.Columns[1].HeaderText = "Фамилия";
+            dataGridView.Columns[1].Width = dataGridView.Width / 5;
+            dataGridView.Columns[2].HeaderText = "Дата выдачи";
+            dataGridView.Columns[2].Width = dataGridView.Width / 5;
+            dataGridView.Columns[3].HeaderText = "Дата возврата";
+            dataGridView.Columns[3].Width = dataGridView.Width / 5;
 
             infoLabel.Text = $"Книги издательства \"{publishersComboBox.SelectedItem.ToString().Trim()}\":";
         }
