@@ -72,7 +72,6 @@ namespace RGR_IS_
             Controls.Add(extraditionButton);
             Controls.Add(refButton);
             Controls.Add(exitButton);
-            Controls.Add(settingsButton);
         }
 
         private void OnExitButtonClick(object sender, EventArgs eventArgs)
