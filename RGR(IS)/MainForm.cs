@@ -72,6 +72,7 @@ namespace RGR_IS_
             Controls.Add(extraditionButton);
             Controls.Add(refButton);
             Controls.Add(exitButton);
+            Controls.Add(settingsButton);
         }
 
         private void OnExitButtonClick(object sender, EventArgs eventArgs)
@@ -112,11 +113,6 @@ namespace RGR_IS_
             catalogForm.SelectedTab = 3;
             catalogForm.Show();
             Hide();
-        }
-
-        void OnSettingsButtonClick(object sender, EventArgs eventArgs)
-        {
-
         }
     }
 }
