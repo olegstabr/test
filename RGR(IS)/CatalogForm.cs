@@ -44,7 +44,7 @@ namespace RGR_IS_
         TabPage catalogTabPage = new TabPage("Книги");
         TabPage publishersTabPage = new TabPage("Издатели");
         TabPage readersTabPage = new TabPage("Читатели");
-        TabPage extraditionTabPage = new TabPage("Выдачи");
+        TabPage extraditionTabPage = new TabPage("Выдачи книг");
 
         GroupBox groupBox = new GroupBox();
         GroupBox publishersGroupBox = new GroupBox();
@@ -510,7 +510,7 @@ namespace RGR_IS_
             int x = MARGIN;
             int y = MARGIN;
 
-            extraditionLabel.Text = "Данные о выдачах:";
+            extraditionLabel.Text = "Данные о выдачах книг:";
             extraditionLabel.Font = font;
             extraditionLabel.AutoSize = true;
             extraditionLabel.Location = new Point(x, y);
@@ -522,7 +522,7 @@ namespace RGR_IS_
             extraditionDataGridView.CellClick += OnExtraditionDataGridViewCellClick;
             extraditionDataGridView.DataBindingComplete += OnExtraditionDataGridViewDataBindingComplete;
 
-            extraditionInfoLabel.Text = "Информация о выдаче:";
+            extraditionInfoLabel.Text = "Информация о выдаче книги:";
             extraditionInfoLabel.Font = font;
             extraditionInfoLabel.AutoSize = true;
             extraditionInfoLabel.Location = new Point(extraditionDataGridView.Width + 4 * MARGIN, extraditionLabel.Location.Y);
@@ -579,18 +579,18 @@ namespace RGR_IS_
 
             addExtraditionButton.Size = new Size((extraditionDataGridView.Width - 2 * MARGIN) / 3, BUTTON_HEIGHT);
             addExtraditionButton.Location = new Point(x = MARGIN, y);
-            addExtraditionButton.Text = "Добавить выдачу";
+            addExtraditionButton.Text = "Добавить выдачу книги";
             addExtraditionButton.Click += OnAddExtraditionButtonClick;
 
             extendExtraditionButton.Size = new Size((extraditionDataGridView.Width - 2 * MARGIN) / 3, BUTTON_HEIGHT);
             extendExtraditionButton.Location = new Point(x += addExtraditionButton.Width + MARGIN, y);
             extendExtraditionButton.Visible = false;
-            extendExtraditionButton.Text = "Продлить выдачу";
+            extendExtraditionButton.Text = "Продлить выдачу книги";
             extendExtraditionButton.Click += OnExtendExtraditionButtonClick;
 
             deleteExtraditionButton.Size = new Size((extraditionDataGridView.Width - 2 * MARGIN) / 3, BUTTON_HEIGHT);
             deleteExtraditionButton.Location = new Point(x += extendExtraditionButton.Width + MARGIN, y);
-            deleteExtraditionButton.Text = "Удалить выдачу";
+            deleteExtraditionButton.Text = "Удалить выдачу книги";
             deleteExtraditionButton.Visible = false;
             deleteExtraditionButton.Click += OnDeleteExtraditionButtonClick;
 
@@ -1101,6 +1101,9 @@ namespace RGR_IS_
             DataGridViewRow row = extraditionDataGridView.CurrentRow;
             string cardNumber = row.Cells[1].Value.ToString();
             string libNumber = row.Cells[2].Value.ToString();
+            string date = row.Cells[3].Value.ToString();
+            DateTime dateFromString = DateTime.Parse(date);
+            dateTimePicker.Value = dateFromString;
 
             for (int i = 0; i < cardExtraComboBox.Items.Count; i++)
             {
@@ -1503,7 +1506,7 @@ namespace RGR_IS_
             DataGridViewRow row = extraditionDataGridView.CurrentRow;
             int id = Convert.ToInt32(row.Cells[0].Value);
 
-            if (MessageBox.Show($"Вы действительно хотите продлить выдачу с ID \"{id}\"?", "Предупреждение",
+            if (MessageBox.Show($"Вы действительно хотите продлить выдачу книги с ID \"{id}\"?", "Предупреждение",
                     MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 string query = $"UPDATE EXTRADITION SET DELIVERY_DATE = '{DateTime.Now.AddDays(14)}' WHERE ID = {id}";
